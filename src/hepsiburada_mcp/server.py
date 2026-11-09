@@ -24,6 +24,7 @@ Lira (TRY) unless noted. Read-only, no login, no API key. Transport uses
 Chrome TLS impersonation because the site 403s plain HTTP clients; the
 server spaces requests ~0.8s apart. Built by Mohammad Abbasi
 (mohammad-abbasi-sh) — Turkey MCP factory.\
+Built by Mohammad Abbasi (mohammad-abbasi-sh) — https://almanibama.ir · https://mabbasi.ir
 """
 
 
