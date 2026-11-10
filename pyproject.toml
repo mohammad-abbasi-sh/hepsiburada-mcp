@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hepsiburada-mcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "Unofficial read-only MCP server for hepsiburada.com shopping (search, product details, reviews, categories, price stats)"
 readme = "README.md"
 license = { text = "MIT" }
