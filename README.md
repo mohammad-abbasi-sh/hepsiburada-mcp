@@ -15,7 +15,7 @@ Add to your MCP client config (stdio):
   "mcpServers": {
     "hepsiburada": {
       "command": "uvx",
-      "args": ["hepsiburada-mcp==0.1.0"]
+      "args": ["hepsiburada-mcp==0.1.1"]
     }
   }
 }
@@ -74,9 +74,9 @@ read-only, no login, no API key.
 ## Install
 
 ```bash
-uvx hepsiburada-mcp==0.1.0        # run directly (needs uv)
+uvx hepsiburada-mcp==0.1.1        # run directly (needs uv)
 # or
-pip install hepsiburada-mcp==0.1.0
+pip install hepsiburada-mcp==0.1.1
 hepsiburada-mcp            # starts the MCP server on stdio
 ```
 
