@@ -20,7 +20,7 @@ mcp-name: io.github.mohammad-abbasi-sh/hepsiburada-mcp
   "mcpServers": {
     "hepsiburada": {
       "command": "uvx",
-      "args": ["hepsiburada-mcp==0.1.0"]
+      "args": ["hepsiburada-mcp==0.1.1"]
     }
   }
 }
@@ -62,9 +62,9 @@ mcp-name: io.github.mohammad-abbasi-sh/hepsiburada-mcp
 ## نصب
 
 ```bash
-uvx hepsiburada-mcp==0.1.0        # اجرای مستقیم (نیازمند uv)
+uvx hepsiburada-mcp==0.1.1        # اجرای مستقیم (نیازمند uv)
 # یا
-pip install hepsiburada-mcp==0.1.0
+pip install hepsiburada-mcp==0.1.1
 hepsiburada-mcp            # اجرای سرور MCP روی stdio
 ```
 
