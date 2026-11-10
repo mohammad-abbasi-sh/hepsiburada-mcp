@@ -20,7 +20,7 @@ MCP istemci yapılandırmanıza ekleyin (stdio):
   "mcpServers": {
     "hepsiburada": {
       "command": "uvx",
-      "args": ["hepsiburada-mcp"]
+      "args": ["hepsiburada-mcp==0.1.0"]
     }
   }
 }
@@ -62,9 +62,9 @@ her şey salt okunurdur, giriş gerekmez, API anahtarı gerekmez.
 ## Kurulum
 
 ```bash
-uvx hepsiburada-mcp        # doğrudan çalıştır (uv gerekir)
+uvx hepsiburada-mcp==0.1.0        # doğrudan çalıştır (uv gerekir)
 # veya
-pip install hepsiburada-mcp
+pip install hepsiburada-mcp==0.1.0
 hepsiburada-mcp            # MCP sunucusunu stdio üzerinde başlatır
 ```
 
