@@ -160,7 +160,7 @@ class TestSorts(unittest.TestCase):
 
 
 class TestServerToolsRegistered(unittest.TestCase):
-    def test_five_tools(self):
+    def test_tools_registered(self):
         from hepsiburada_mcp.server import mcp
 
         tools = asyncio.run(mcp.list_tools())
@@ -168,6 +168,7 @@ class TestServerToolsRegistered(unittest.TestCase):
         self.assertEqual(
             names,
             [
+                "hepsiburada_health",
                 "hepsiburada_list_categories",
                 "hepsiburada_price_stats",
                 "hepsiburada_product_detail",
