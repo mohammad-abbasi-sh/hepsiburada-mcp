@@ -2,11 +2,14 @@
 
 mcp-name: io.github.mohammad-abbasi-sh/hepsiburada-mcp
 
-سرور MCP غیررسمی و **فقط‌خواندنی** برای **hepsiburada.com**، بزرگ‌ترین
+سرور MCP غیررسمی برای **hepsiburada.com**، بزرگ‌ترین
 فروشگاه اینترنتی ترکیه — جست‌وجو در میلیون‌ها کالا، خواندن جزئیات کالا
 (قیمت، موجودی، فروشنده، GTIN، ویژگی‌های برجسته)، خواندن نظرهای مشتریان،
 مرور ۹ دسته‌ی اصلی، و گرفتن آمار قیمت (کمترین / میانه / میانگین /
-بیشترین) برای هر جست‌وجو.
+بیشترین) برای هر جست‌وجو. ابزارهای فقط‌خواندنی بدون لاگین کار می‌کنند.
+**اقدام‌های حساب کاربری** (سبد خرید + علاقه‌مندی‌ها) اختیاری‌اند و از
+نشست مرورگر خودتان استفاده می‌کنند؛ نشست فقط در پیکربندی MCP شما
+ذخیره می‌شود — ببینید [اقدام‌های حساب کاربری](#اقدامهای-حساب-کاربری).
 
 > ساخته‌ی محمد عباسی در چارچوب «کارخانه‌ی MCP ترکیه» (به سبک سپهر). هیچ
 > وابستگی‌ای به hepsiburada.com ندارد.
@@ -20,7 +23,7 @@ mcp-name: io.github.mohammad-abbasi-sh/hepsiburada-mcp
   "mcpServers": {
     "hepsiburada": {
       "command": "uvx",
-      "args": ["hepsiburada-mcp==0.1.1"]
+      "args": ["hepsiburada-mcp==0.2.0"]
     }
   }
 }
@@ -29,15 +32,40 @@ mcp-name: io.github.mohammad-abbasi-sh/hepsiburada-mcp
 یا به‌صورت محلی اجرا کنید: `python -m hepsiburada_mcp.server`
 (نیازمند `mcp<2` و `curl-cffi`).
 
+برای اقدام‌های حساب کاربری (سبد خرید + علاقه‌مندی‌ها)، کوکی نشست
+مرورگرتان را به پیکربندی اضافه کنید — ببینید
+[اقدام‌های حساب کاربری](#اقدامهای-حساب-کاربری):
+
+```json
+{
+  "mcpServers": {
+    "hepsiburada": {
+      "command": "uvx",
+      "args": ["hepsiburada-mcp==0.2.0"],
+      "env": {
+        "HEPSIBURADA_SESSION": "YOUR_SESSION_COOKIE_HERE"
+      }
+    }
+  }
+}
+```
+
 ## ابزارها
 
 | ابزار | توضیح |
 |------|-------|
 | `hepsiburada_search` | جست‌وجوی کالا با کلیدواژه — `query` (مثل «iphone» یا «kablosuz kulaklık»)، `sort` (‏«relevance» / ‏«price_asc» / ‏«price_desc»)، `limit` از ۱ تا ۲۴، `page` از ۱؛ برمی‌گرداند: عنوان، قیمت به لیر، امتیاز، تعداد نظر، آدرس، SKU، عکس، کمپین |
-| `hepsiburada_product_detail` | جزئیات یک کالا (`product` = آدرس کامل یا مسیر حاوی «-p-HBCV…»): نام، برند، قیمت به لیر، وضعیت موجودی، امتیاز، تعداد نظر، فروشنده (+ فروشنده‌ی رسمی)، مسیر دسته، رنگ، GTIN، عکس‌ها، ویژگی‌های برجسته |
+| `hepsiburada_product_detail` | جزئیات یک کالا (`product` = آدرس کامل یا مسیر حاوی «-p-HBCV…»): نام، برند، قیمت به لیر، وضعیت موجودی، امتیاز، تعداد نظر، فروشنده (+ فروشنده‌ی رسمی)، مسیر دسته، رنگ، GTIN، عکس‌ها، ویژگی‌های برجسته، به‌علاوه‌ی `listing_id` / ‏`product_id` / ‏`merchant_id` (برای اقدام‌های حساب کاربری) |
 | `hepsiburada_list_categories` | ۹ دسته‌ی اصلی: نام ترکی، آدرس، شناسه‌ی دسته |
 | `hepsiburada_price_stats` | آمار قیمت برای یک جست‌وجو: تعداد، کمترین / میانه / میانگین / بیشترین قیمت (لیر) |
 | `hepsiburada_product_reviews` | نظرهای اخیر مشتریان برای یک کالا: نویسنده، امتیاز ستاره‌ای، متن نظر، تاریخ |
+| `hepsiburada_view_cart` | سبد خرید شما: اقلام (شناسه‌ی قلم سبد، SKU، نام، تعداد، قیمت به لیر، انتخاب‌شده / خرید بعدی)، تعداد کل اقلام و قیمت کل، به‌علاوه‌ی آدرس سبد — نیازمند `HEPSIBURADA_SESSION` |
+| `hepsiburada_add_to_cart` | افزودن کالا به سبد (`sku`، ‏`listing_id` یا `product_url`، ‏`quantity` از ۱ تا ۹۹) — نیازمند نشست + `confirm=true` |
+| `hepsiburada_remove_from_cart` | حذف یک قلم از سبد (`basket_item_id`، ‏GUID از خروجی `hepsiburada_view_cart`؛ ‏`basket_type` ‏«Primary» / ‏«Secondary») — نیازمند نشست + `confirm=true` |
+| `hepsiburada_update_cart_quantity` | تغییر تعداد یک قلم سبد (`basket_item_id`، ‏`quantity` از ۱ تا ۹۹) — نیازمند نشست + `confirm=true` |
+| `hepsiburada_list_favorites` | SKUهای کالاهای موردعلاقه‌ی شما — نیازمند `HEPSIBURADA_SESSION` |
+| `hepsiburada_add_favorite` | افزودن کالا به علاقه‌مندی‌ها (`sku`، ‏`listing_id` + ‏`product_id` یا `product_url`) — نیازمند نشست + `confirm=true` |
+| `hepsiburada_remove_favorite` | حذف کالا از علاقه‌مندی‌ها (`sku`) — نیازمند نشست + `confirm=true` |
 
 نمونه‌ی خروجی (`hepsiburada_search` / ‏«iphone»):
 
@@ -49,6 +77,48 @@ mcp-name: io.github.mohammad-abbasi-sh/hepsiburada-mcp
    "review_count": 13102}, …]}
 ```
 
+## اقدام‌های حساب کاربری
+
+ابزارهای سبد خرید و علاقه‌مندی‌ها با **نشست مرورگر خودتان** کار
+می‌کنند — بدون رمز عبور، بدون کلید API، بدون ساخت هیچ حسابی. نشست فقط
+در پیکربندی MCP client روی دستگاه خودتان می‌ماند و فقط به
+hepsiburada.com فرستاده می‌شود. سرور هرگز آن را ثبت، چاپ یا ذخیره
+نمی‌کند و در هیچ خروجی ابزاری دیده نمی‌شود. هر تغییر (افزودن / حذف /
+تغییر تعداد) همچنین به `confirm=true` نیاز دارد؛ وگرنه هیچ کاری انجام
+نمی‌شود.
+
+### راه‌اندازی (یک بار)
+
+۱. در مرورگرتان (Chrome / Edge / Firefox) وارد
+[hepsiburada.com](https://www.hepsiburada.com) شوید.
+۲. ابزارهای توسعه‌دهنده (DevTools) را باز کنید (F12) ← زبانه‌ی
+**Network** ← صفحه را تازه‌سازی کنید.
+۳. روی هر درخواستی به `hepsiburada.com` کلیک کنید ← **Headers** ←
+هدر درخواست **Cookie** را پیدا کنید ← مقدار کامل آن را کپی کنید.
+(جایگزین: DevTools ← **Application** ← **Cookies** ←
+‏`https://www.hepsiburada.com` — ولی هدر Cookie در زبانه‌ی Network مقدار
+کامل است؛ همان را کپی کنید.)
+۴. آن را به‌عنوان `HEPSIBURADA_SESSION` در پیکربندی MCP client خود
+بچسبانید (نمونه در بالا) و سرور MCP را دوباره راه‌اندازی کنید.
+۵. ابزار `hepsiburada_view_cart` را امتحان کنید — باید سبد واقعی شما
+را نشان دهد.
+
+### نکته‌ها
+
+- نشست منقضی می‌شود: وقتی ابزاری «session expired» گزارش داد، برای
+  گرفتن کوکی‌های تازه قدم‌های ۲ تا ۴ را تکرار کنید. خروج از
+  hepsiburada.com نشست را فوراً باطل می‌کند.
+- **مقدار کوکی را هرگز با کسی به اشتراک نگذارید** — هر کس آن را داشته
+  باشد به حساب Hepsiburada شما دسترسی کامل دارد (سبد خرید،
+  علاقه‌مندی‌ها، سفارش‌ها). آن را در چت‌ها، issueها یا اسکرین‌شات‌ها
+  نگذارید.
+- اقدام‌های حساب کاربری آگاهانه محدودند: سبد خرید (مشاهده / افزودن /
+  حذف / تغییر تعداد) و علاقه‌مندی‌ها (فهرست / افزودن / حذف). هیچ
+  پرداخت، کوپن یا اقدام گروهی‌ای وجود ندارد.
+- ‏`listing_id` / ‏`product_id` از `hepsiburada_product_detail`
+  می‌آیند؛ یا به ابزارهای افزودن `product_url` بدهید تا از صفحه‌ی
+  کالا به‌طور خودکار حل شوند.
+
 ## چطور کار می‌کند؟
 
 سایت hepsiburada.com به کلاینت‌های HTTP ساده خطای 403 می‌دهد؛ به همین
@@ -57,14 +127,19 @@ mcp-name: io.github.mohammad-abbasi-sh/hepsiburada-mcp
 می‌آیند: صفحه‌های جست‌وجو کارت‌های کالا دارند، صفحه‌های کالا JSON-LD از
 نوع Product به‌همراه بلوک فروشنده و فهرست «Ürün Özellikleri»، و صفحه‌ی
 اصلی دسته‌های اصلی را دارد. درخواست‌ها با فاصله‌ی حدود ۰٫۸ ثانیه
-فرستاده می‌شوند؛ همه‌چیز فقط‌خواندنی است، بدون لاگین و بدون کلید API.
+فرستاده می‌شوند؛ ابزارهای فقط‌خواندنی بدون لاگین و بدون کلید API کار
+می‌کنند. ابزارهای حساب کاربری با نشست مرورگر شما APIهای پرداخت / سبد /
+علاقه‌مندی‌های خود Hepsiburada را صدا می‌زنند (ببینید
+[اقدام‌های حساب کاربری](#اقدامهای-حساب-کاربری))؛ نقاط پایانی به‌صورت
+زنده راستی‌آزمایی شده‌اند (هر کدام بدون نشست خطای 401 برمی‌گردانند، که
+درستی مسیر + درگاه احراز هویت را ثابت می‌کند).
 
 ## نصب
 
 ```bash
-uvx hepsiburada-mcp==0.1.1        # اجرای مستقیم (نیازمند uv)
+uvx hepsiburada-mcp==0.2.0        # اجرای مستقیم (نیازمند uv)
 # یا
-pip install hepsiburada-mcp==0.1.1
+pip install hepsiburada-mcp==0.2.0
 hepsiburada-mcp            # اجرای سرور MCP روی stdio
 ```
 
@@ -81,7 +156,3 @@ python -m venv .venv && .venv/bin/pip install -e .
 ## لایسنس
 
 MIT — ببینید [LICENSE](LICENSE).
-
----
-
-Built by [Mohammad Abbasi](https://github.com/mohammad-abbasi-sh) — [Almanibama](https://almanibama.ir) · [mabbasi.ir](https://mabbasi.ir)
