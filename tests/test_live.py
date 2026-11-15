@@ -7,6 +7,7 @@ Run: python -m unittest discover -s tests -v
 import json
 import unittest
 
+from hepsiburada_mcp import account as A
 from hepsiburada_mcp import http as H
 from hepsiburada_mcp import products as P
 
@@ -98,6 +99,93 @@ class TestLiveToolsEndToEnd(unittest.TestCase):
 
         out = json.loads(hepsiburada_search("iphone", sort="nope"))
         self.assertIn("error", out)
+
+
+class TestLiveAccountProbes(unittest.TestCase):
+    """Unauthenticated probes of the account endpoints (no session).
+
+    Every authed endpoint must answer HTTP 401 {"Message":"Invalid
+    Token"} without a session, proving the path + auth gate; the XSRF
+    endpoint answers 200. Nothing here can mutate an account — the
+    calls carry no session at all. Network errors skip (transient),
+    they do not fail.
+    """
+
+    FAKE_GUID = "00000000-0000-4000-8000-000000000000"
+
+    def _probe(self, method, url, headers=None, body=None):
+        try:
+            return A._raw_request(method, url, headers or {}, body)
+        except A.AccountError as e:
+            raise unittest.SkipTest(f"network unavailable: {e}")
+
+    def _assert_401(self, method, url, headers=None, body=None):
+        resp = self._probe(method, url, headers, body)
+        self.assertEqual(resp.status_code, 401, f"{method} {url}")
+        self.assertEqual(resp.json().get("Message"), "Invalid Token")
+
+    def test_basket_all_401(self):
+        self._assert_401(
+            "GET", f"{A.BASKET_WEB_API}/basket/all",
+            {"Accept": "application/json"},
+        )
+
+    def test_add_to_cart_401(self):
+        self._assert_401(
+            "PUT", f"{A.CHECKOUT_API}/basket",
+            {"Accept": "application/json",
+             "Content-Type": "application/json; charset=utf-8",
+             "tenant-id": A.TENANT_ID, "client-id": A.CLIENT_ID},
+            {"product": {"metadata": {"sku": "HBCV00004X9ZCK",
+                                      "listingId": self.FAKE_GUID},
+                         "quantity": 1, "origin": "SfProductDetail"}},
+        )
+
+    def test_remove_from_cart_401(self):
+        self._assert_401(
+            "DELETE",
+            f"{A.BASKET_WEB_API}/basket/item/{self.FAKE_GUID}",
+            {"Accept": "application/json", "basket-type": "Primary"},
+        )
+
+    def test_update_cart_quantity_401(self):
+        self._assert_401(
+            "PATCH",
+            f"{A.BASKET_WEB_API}/basket/item/{self.FAKE_GUID}",
+            {"Accept": "application/json",
+             "Content-Type": "application/json", "basket-type": "Primary"},
+            [{"value": 2, "path": "/Quantity", "op": "replace",
+              "from": "int"}],
+        )
+
+    def test_list_favorites_401(self):
+        self._assert_401(
+            "GET", f"{A.FAVORITES_API}/favorite-skus",
+            {"Accept": "application/json"},
+        )
+
+    def test_add_favorite_401(self):
+        self._assert_401(
+            "POST", f"{A.FAVORITES_API}/favorites",
+            {"Accept": "application/json",
+             "Content-Type": "application/json"},
+            {"sku": "HBCV00004X9ZCK", "listingId": self.FAKE_GUID,
+             "productId": "HBC00004X9ZCG"},
+        )
+
+    def test_remove_favorite_401(self):
+        self._assert_401(
+            "DELETE", f"{A.FAVORITES_API}/favorites/HBCV00004X9ZCK",
+            {"Accept": "application/json"},
+        )
+
+    def test_xsrf_token_200(self):
+        resp = self._probe(
+            "GET", f"{A.OAUTH_API}/xsrf-token",
+            {"Accept": "application/json"},
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json().get("xsrfToken"))
 
 
 if __name__ == "__main__":
