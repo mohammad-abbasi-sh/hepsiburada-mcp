@@ -1,4 +1,10 @@
-"""MCP server: unofficial read-only access to hepsiburada.com shopping."""
+"""MCP server: unofficial access to hepsiburada.com shopping.
+
+Read-only tools (search, details, reviews, categories, price stats)
+need no login. Account tools (cart, favorites) use the user's own
+browser session from the HEPSIBURADA_SESSION env var — local only,
+never logged or persisted — and every mutation needs confirm=true.
+"""
 from __future__ import annotations
 
 import json
@@ -6,22 +12,26 @@ from datetime import datetime, timezone
 
 from mcp.server.fastmcp import FastMCP
 
+from . import account as _A
 from . import http as _http
 from . import products as _P
 
 mcp = FastMCP("hepsiburada-mcp")
 
 INSTRUCTIONS = """\
-Unofficial read-only MCP server for hepsiburada.com, Türkiye's leading
-e-commerce marketplace. Data comes from the site's public server-rendered
-pages: search pages carry product cards (title, final price in TRY,
-rating, review count, campaign text), product pages carry schema.org
-Product JSON-LD (price, availability, brand, GTIN, images) plus a seller
-block and a "Ürün Özellikleri" highlights list, and the homepage carries
-the 9 top categories. Product URLs look like
+Unofficial MCP server for hepsiburada.com, Türkiye's leading
+e-commerce marketplace. Read-only data comes from the site's public
+server-rendered pages: search pages carry product cards (title, final
+price in TRY, rating, review count, campaign text), product pages
+carry schema.org Product JSON-LD (price, availability, brand, GTIN,
+images) plus a seller block and a "Ürün Özellikleri" highlights list,
+and the homepage carries the 9 top categories. Product URLs look like
 "/apple-iphone-15-128-gb-mavi-p-HBCV00004X9ZCK" (the HBCV… code is the
 SKU; use hepsiburada_search to find product URLs). Prices are in Turkish
-Lira (TRY) unless noted. Read-only, no login, no API key. Transport uses
+Lira (TRY) unless noted. Read-only tools need no login and no API key.
+Account tools (cart, favorites) use the user's own browser session
+from the HEPSIBURADA_SESSION env var — local only, never logged or
+persisted — and every mutation needs confirm=true. Transport uses
 Chrome TLS impersonation because the site 403s plain HTTP clients; the
 server spaces requests ~0.8s apart. Built by Mohammad Abbasi
 (mohammad-abbasi-sh) — Turkey MCP factory.\
@@ -145,6 +155,135 @@ def hepsiburada_health() -> str:
     rate limit) or error, plus the HTTP status and the probed URL.
     One polite request; it does not fetch any listings."""
     return _ok(_http.health_check())
+
+
+# ---------------------------------------------------------------- account actions
+# Local-session tools: they need HEPSIBURADA_SESSION (the user's browser
+# cookie, set in the MCP client config — never leaves their machine).
+# Every mutation needs confirm=true or it does nothing.
+
+def _confirmation_required(action: str) -> str:
+    return _ok({
+        "error": "confirmation_required",
+        "message": f"Set confirm=true to {action}.",
+    })
+
+
+@mcp.tool()
+def hepsiburada_view_cart() -> str:
+    """View your hepsiburada.com cart: items (basket item id, SKU, name,
+    quantity, price in TRY, selected or buy-later), total item count and
+    total price, plus a cart URL to review in the browser. Requires
+    HEPSIBURADA_SESSION (see README 'Account actions')."""
+    try:
+        result = _A.view_cart()
+    except _A.AccountError as e:
+        return _err(e)
+    return _ok(result)
+
+
+@mcp.tool()
+def hepsiburada_add_to_cart(sku: str, listing_id: str | None = None,
+                            product_url: str | None = None,
+                            quantity: int = 1, confirm: bool = False) -> str:
+    """Add a product to your hepsiburada.com cart. sku: the HBCV… code
+    (find it with hepsiburada_search). listing_id: from
+    hepsiburada_product_detail — or pass product_url (full product URL
+    or path) and it is resolved from the page. quantity 1..99.
+    Requires HEPSIBURADA_SESSION and confirm=true."""
+    if not confirm:
+        return _confirmation_required("add this product to your hepsiburada.com cart")
+    try:
+        result = _A.add_to_cart(
+            sku, listing_id=listing_id, product_url=product_url,
+            quantity=quantity,
+        )
+    except (ValueError, _A.AccountError, _http.HepsiburadaError) as e:
+        return _err(e)
+    return _ok(result)
+
+
+@mcp.tool()
+def hepsiburada_remove_from_cart(basket_item_id: str,
+                                 basket_type: str = "Primary",
+                                 confirm: bool = False) -> str:
+    """Remove one item from your hepsiburada.com cart. basket_item_id: the
+    GUID from hepsiburada_view_cart. basket_type: "Primary" (selected
+    items, default) or "Secondary" (buy-later items). Requires
+    HEPSIBURADA_SESSION and confirm=true."""
+    if not confirm:
+        return _confirmation_required("remove this item from your hepsiburada.com cart")
+    try:
+        result = _A.remove_from_cart(basket_item_id, basket_type=basket_type)
+    except (ValueError, _A.AccountError) as e:
+        return _err(e)
+    return _ok(result)
+
+
+@mcp.tool()
+def hepsiburada_update_cart_quantity(basket_item_id: str, quantity: int,
+                                     basket_type: str = "Primary",
+                                     confirm: bool = False) -> str:
+    """Change the quantity of one item in your hepsiburada.com cart.
+    basket_item_id: the GUID from hepsiburada_view_cart. quantity 1..99
+    (use hepsiburada_remove_from_cart to remove an item — quantity 0 is
+    not supported). basket_type: "Primary" (default) or "Secondary".
+    Requires HEPSIBURADA_SESSION and confirm=true."""
+    if not confirm:
+        return _confirmation_required("change this cart item's quantity")
+    try:
+        result = _A.update_cart_quantity(
+            basket_item_id, quantity, basket_type=basket_type
+        )
+    except (ValueError, _A.AccountError) as e:
+        return _err(e)
+    return _ok(result)
+
+
+@mcp.tool()
+def hepsiburada_list_favorites() -> str:
+    """List your hepsiburada.com favorite product SKUs (the HBCV… codes).
+    Requires HEPSIBURADA_SESSION (see README 'Account actions')."""
+    try:
+        result = _A.list_favorites()
+    except _A.AccountError as e:
+        return _err(e)
+    return _ok(result)
+
+
+@mcp.tool()
+def hepsiburada_add_favorite(sku: str, listing_id: str | None = None,
+                             product_id: str | None = None,
+                             product_url: str | None = None,
+                             confirm: bool = False) -> str:
+    """Add a product to your hepsiburada.com favorites. sku: the HBCV…
+    code. listing_id and product_id: from hepsiburada_product_detail —
+    or pass product_url (full product URL or path) and they are resolved
+    from the page. Requires HEPSIBURADA_SESSION and confirm=true."""
+    if not confirm:
+        return _confirmation_required("add this product to your hepsiburada.com favorites")
+    try:
+        result = _A.add_favorite(
+            sku, listing_id=listing_id, product_id=product_id,
+            product_url=product_url,
+        )
+    except (ValueError, _A.AccountError, _http.HepsiburadaError) as e:
+        return _err(e)
+    return _ok(result)
+
+
+@mcp.tool()
+def hepsiburada_remove_favorite(sku: str, confirm: bool = False) -> str:
+    """Remove a product from your hepsiburada.com favorites. sku: the
+    HBCV… code (see hepsiburada_list_favorites). Requires
+    HEPSIBURADA_SESSION and confirm=true."""
+    if not confirm:
+        return _confirmation_required("remove this product from your hepsiburada.com favorites")
+    try:
+        result = _A.remove_favorite(sku)
+    except _A.AccountError as e:
+        return _err(e)
+    return _ok(result)
 
 
 def main() -> None:
