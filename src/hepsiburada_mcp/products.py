@@ -253,7 +253,73 @@ def parse_product_detail(html: str) -> dict:
     title_m = re.search(r"<title>\s*([^<]+?)\s*</title>", html)
     if title_m and not detail.get("name"):
         detail["name"] = _clean(title_m.group(1))
+    # Listing identifiers (for account actions): listing_id / product_id /
+    # merchant_id. Omitted when not found on the page — never fabricated.
+    detail.update(parse_listing_info(html, sku=detail.get("sku")))
     return {k: v for k, v in detail.items() if v is not None}
+
+
+# ---------------------------------------------------------------- listing ids
+
+_REDUX_RE = re.compile(r'id="reduxStore">\s*(\{.*?\})\s*</script>', re.S)
+_LISTING_IDS_RE = re.compile(r'"listing_ids"\s*:\s*\[\s*"([^"]+)"')
+_LISTING_ID_RE = re.compile(r'"listingId"\s*:\s*"([0-9a-fA-F-]{36})"')
+_PRODUCT_ID_RE = re.compile(r'"productId"\s*:\s*"(HBC[0-9A-Z]+)"')
+_MERCHANT_ID_RE = re.compile(r'"merchantId"\s*:\s*"([0-9a-fA-F-]{36})"')
+
+
+def parse_listing_info(html: str, sku: str | None = None) -> dict:
+    """listing_id / product_id / merchant_id from a product page.
+
+    Primary source: the reduxStore JSON (productState.product), matched
+    against the page SKU when given. Fallbacks: the "listing_ids" array
+    (first element is the canonical listing) and the productId /
+    listingId / merchantId in the offer object containing the page SKU.
+    Fields that cannot be found are omitted, never fabricated.
+    """
+    info: dict = {}
+    m = _REDUX_RE.search(html)
+    if m:
+        try:
+            store = json.loads(m.group(1))
+        except (json.JSONDecodeError, ValueError):
+            store = None
+        if isinstance(store, dict):
+            prod = (store.get("productState") or {}).get("product") or {}
+            if isinstance(prod, dict) and (sku is None or prod.get("sku") == sku):
+                if prod.get("listingId"):
+                    info["listing_id"] = prod["listingId"]
+                if prod.get("productId"):
+                    info["product_id"] = prod["productId"]
+                if prod.get("merchantId"):
+                    info["merchant_id"] = prod["merchantId"]
+    if "listing_id" not in info:
+        m2 = _LISTING_IDS_RE.search(html)
+        if m2:
+            info["listing_id"] = m2.group(1)
+    if sku and ("product_id" not in info or "merchant_id" not in info
+                or "listing_id" not in info):
+        # Offer object containing the page SKU: search a window around
+        # each "sku":"<sku>" occurrence for its identifiers.
+        for sm in re.finditer(
+            r'"sku"\s*:\s*"' + re.escape(sku) + r'"', html
+        ):
+            window = html[max(0, sm.start() - 1200):sm.end() + 1200]
+            if "product_id" not in info:
+                pm = _PRODUCT_ID_RE.search(window)
+                if pm:
+                    info["product_id"] = pm.group(1)
+            if "listing_id" not in info:
+                lm = _LISTING_ID_RE.search(window)
+                if lm:
+                    info["listing_id"] = lm.group(1)
+            if "merchant_id" not in info:
+                mm = _MERCHANT_ID_RE.search(window)
+                if mm:
+                    info["merchant_id"] = mm.group(1)
+            if len(info) == 3:
+                break
+    return info
 
 
 def parse_reviews(html: str, limit: int = 5) -> list[dict]:
