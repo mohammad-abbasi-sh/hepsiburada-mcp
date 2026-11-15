@@ -168,12 +168,19 @@ class TestServerToolsRegistered(unittest.TestCase):
         self.assertEqual(
             names,
             [
+                "hepsiburada_add_favorite",
+                "hepsiburada_add_to_cart",
                 "hepsiburada_health",
                 "hepsiburada_list_categories",
+                "hepsiburada_list_favorites",
                 "hepsiburada_price_stats",
                 "hepsiburada_product_detail",
                 "hepsiburada_product_reviews",
+                "hepsiburada_remove_favorite",
+                "hepsiburada_remove_from_cart",
                 "hepsiburada_search",
+                "hepsiburada_update_cart_quantity",
+                "hepsiburada_view_cart",
             ],
         )
 
