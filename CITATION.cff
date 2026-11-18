@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use hepsiburada-mcp, please cite it as below."
+authors:
+  - family-names: "Abbasi"
+    given-names: "Mohammad"
+title: "hepsiburada-mcp"
+version: 0.2.0
+date-released: 2026-11-15
+url: "https://github.com/mohammad-abbasi-sh/hepsiburada-mcp"
+repository-code: "https://github.com/mohammad-abbasi-sh/hepsiburada-mcp"
+license: PolyForm-Noncommercial-1.0.0
+type: software
