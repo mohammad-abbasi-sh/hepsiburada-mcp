@@ -163,4 +163,4 @@ python -m venv .venv && .venv/bin/pip install -e .
 
 ## لایسنس
 
-MIT — ببینید [LICENSE](LICENSE).
+PolyForm Noncommercial 1.0.0 — استفادهٔ شخصی و غیرتجاری رایگان است؛ استفادهٔ تجاری نیاز به مجوز جداگانه دارد. ببینید [LICENSE](LICENSE).
