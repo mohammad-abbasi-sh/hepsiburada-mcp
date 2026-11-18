@@ -153,6 +153,14 @@ python -m venv .venv && .venv/bin/pip install -e .
 تست‌های آفلاین روی نمونه‌های ضبط‌شده از صفحه‌های واقعی اجرا می‌شوند
 (دریافت‌شده در ۲۰۲۶-۱۱-۰۶)؛ تست‌های زنده به hepsiburada.com وصل می‌شوند.
 
+## استناد به این پروژه
+
+اگه از hepsiburada-mcp استفاده می‌کنی، روش چیزی می‌سازی یا درباره‌ش می‌نویسی، لطفاً منبع رو ذکر کن:
+
+> Abbasi, Mohammad. *hepsiburada-mcp*. v0.2.0, 2026. https://github.com/mohammad-abbasi-sh/hepsiburada-mcp
+
+استناد آماده برای کپی هم از دکمهٔ **Cite this repository** گیت‌هاب در دسترسه (فایل `CITATION.cff`).
+
 ## لایسنس
 
 MIT — ببینید [LICENSE](LICENSE).
