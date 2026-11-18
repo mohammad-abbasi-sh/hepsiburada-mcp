@@ -161,6 +161,14 @@ live tests hit hepsiburada.com.
 - Seller store pages (other sellers of the same product)
 - Price history (track a SKU over days)
 
+## Cite this project
+
+If you use hepsiburada-mcp, build on it, or write about it, please credit the source:
+
+> Abbasi, Mohammad. *hepsiburada-mcp*. v0.2.0, 2026. https://github.com/mohammad-abbasi-sh/hepsiburada-mcp
+
+A ready-to-copy citation is also available from GitHub's **Cite this repository** button (see `CITATION.cff`). Commercial use needs a separate license (see below).
+
 ## License
 
 [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/) — see [LICENSE](LICENSE).
